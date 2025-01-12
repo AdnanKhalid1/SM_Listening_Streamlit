@@ -44,7 +44,7 @@ def create_heatmap(df):
         hovertemplate="<b>App:</b> %{y}<br>"
                       + "<b>kmeans_cluster_name:</b> %{x}<br>"
                       + "<b>Sum thumbsUpCount_222:</b> %{z}",
-        textfont_size=16       # Increase cell text (summation) size
+        textfont_size=12       # Increase cell text (summation) size
     )
 
     return fig
