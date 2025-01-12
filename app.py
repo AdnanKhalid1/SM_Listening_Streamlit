@@ -245,6 +245,59 @@ def create_inter_app_strength_heatmap(df_table):
     return fig
 
 
+# NEW FUNCTION: Create monthly scatter plot for a single App
+def create_monthly_scatter_plot(df):
+    """
+    Given a DataFrame df (already filtered by one App and possibly limited clusters),
+    - Convert 'at' to month (e.g., 'YYYY-MM-01' or a monthly frequency).
+    - Group by [month, kmeans_cluster_name] and sum thumbsUpCount_222.
+    - Plot a scatter with x=month, y=summation, color=kmeans_cluster_name.
+    """
+    if df.empty:
+        return None  # Return None if no data to plot
+
+    # Convert 'at' to monthly period and back to a timestamp (e.g., start of month)
+    df['month_year'] = df['at'].dt.to_period("M").dt.to_timestamp()
+
+    # Group by month_year + cluster
+    grouped = df.groupby(['month_year', 'kmeans_cluster_name'])['thumbsUpCount_222'].sum().reset_index()
+
+    # Create a scatter plot
+    fig = px.scatter(
+        grouped,
+        x='month_year',
+        y='thumbsUpCount_222',
+        color='kmeans_cluster_name',
+        title="Monthly Summation of ThumbsUpCount_222 by kmeans_cluster_name",
+        labels={
+            'month_year': 'Month',
+            'thumbsUpCount_222': 'Sum Thumbs Up'
+        },
+        hover_data=['kmeans_cluster_name', 'thumbsUpCount_222'],
+    )
+
+    # Update axes, layout
+    fig.update_layout(
+        autosize=False,
+        width=1200,
+        height=600,
+        margin=dict(l=60, r=60, t=80, b=50),
+    )
+    # Make x-axis show months nicely
+    fig.update_xaxes(
+        tickformat="%Y-%m",
+        tickangle=45,
+        tickfont=dict(size=12),
+        title_text="Month"
+    )
+    fig.update_yaxes(
+        title_text="Summation of ThumbsUpCount_222",
+        tickfont=dict(size=12)
+    )
+
+    return fig
+
+
 def main():
     st.set_page_config(page_title="Heatmap Dashboard", layout="wide")
     st.markdown("### Heatmap of Summation of Thumbs Up Counts")
@@ -257,7 +310,7 @@ def main():
     # ----------------------------------------------------------------
     # GLOBAL DATE FILTER (applies to bottom plots in tabs 1-3)
     # ----------------------------------------------------------------
-    st.write("#### Global Date Filter for Bottom Plots (All Tabs Except Tab 4)")
+    st.write("#### Global Date Filter for Bottom Plots (Tabs 1-3, 4 not affected, 5 also not using date filter)")
     min_date = df_shortlisted['at'].min().date()
     max_date = df_shortlisted['at'].max().date()
 
@@ -287,11 +340,12 @@ def main():
     # ----------------------------------------------------------------
     # CREATE TABS
     # ----------------------------------------------------------------
-    tab1, tab2, tab3, tab4 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5 = st.tabs([
         "Tab 1: Summation Heatmaps",
         "Tab 2: Row-wise % Heatmaps",
         "Tab 3: Row-wise % + App/Cluster Filter",
-        "Tab 4: SWOT & Strength Analysis"
+        "Tab 4: SWOT & Strength Analysis",
+        "Tab 5: Single App Monthly Chart"
     ])
 
     # ===========================
@@ -397,6 +451,48 @@ def main():
         # 3. Create the bottom heatmap (Inter-App Strength)
         fig_inter_app_strength = create_inter_app_strength_heatmap(intra_app_table)
         st.plotly_chart(fig_inter_app_strength, use_container_width=True, key="tab4_intra_app_strength_bottom")
+
+    # ================================================
+    # TAB 5: SINGLE APP MONTHLY CHART
+    # ================================================
+    with tab5:
+        st.subheader("Single App Monthly Summation Chart (No Date Filter)")
+        st.markdown(
+            "Pick an **App** and optionally some **kmeans_cluster_name** categories. "
+            "We’ll plot monthly summation of thumbsUpCount_222 with distinct colors for each cluster."
+        )
+
+        # 1. Let user pick one App
+        all_apps_5 = sorted(df_shortlisted['App'].unique())
+        selected_app_5 = st.selectbox(
+            "Select an App",
+            options=all_apps_5,
+            key="tab5_app"
+        )
+
+        # 2. Let user pick cluster(s) optionally
+        all_clusters_5 = sorted(df_shortlisted['kmeans_cluster_name'].unique())
+        selected_clusters_5 = st.multiselect(
+            "Select kmeans_cluster_name(s) to include",
+            options=all_clusters_5,
+            default=all_clusters_5,  # by default include all
+            key="tab5_clusters"
+        )
+
+        # 3. Filter the data for that single App and any chosen clusters
+        df_tab5 = df_shortlisted.copy()
+        df_tab5 = df_tab5[df_tab5['App'] == selected_app_5]
+
+        if selected_clusters_5:
+            df_tab5 = df_tab5[df_tab5['kmeans_cluster_name'].isin(selected_clusters_5)]
+
+        # 4. Create monthly scatter plot
+        fig_tab5 = create_monthly_scatter_plot(df_tab5)
+
+        if fig_tab5 is None:
+            st.warning("No data available for the selected filters.")
+        else:
+            st.plotly_chart(fig_tab5, use_container_width=True, key="tab5_monthly_scatter")
 
 
 if __name__ == "__main__":
