@@ -153,7 +153,9 @@ def main():
 
     if start_date > end_date:
         st.error("Error: Start date must be before or same as end date.")
-        st.stop()
+        # Instead of st.stop(), just skip creating bottom plots
+        # return or pass
+        pass
 
     # Create a filtered DataFrame for the BOTTOM plots in each tab
     mask_global = (df_shortlisted['at'].dt.date >= start_date) & \
@@ -176,26 +178,23 @@ def main():
         st.subheader("Top Plot (Summation) - Full Data (No Date Filter)")
         # Top Plot: Full data, summation
         fig_full_sum = create_summation_heatmap(df_shortlisted)
-        st.plotly_chart(fig_full_sum, use_container_width=True)
+        st.plotly_chart(fig_full_sum, use_container_width=True, key="summation_top_tab1")
 
         st.subheader(f"Bottom Plot (Summation) - Date Filtered [{start_date} to {end_date}]")
-        # Bottom Plot: Summation with global date filter
         fig_filtered_sum = create_summation_heatmap(df_bottom_filtered)
-        st.plotly_chart(fig_filtered_sum, use_container_width=True)
+        st.plotly_chart(fig_filtered_sum, use_container_width=True, key="summation_bottom_tab1")
 
     # ===========================
     # TAB 2: ROW-WISE % HEATMAPS
     # ===========================
     with tab2:
         st.subheader("Top Plot (Row-wise %) - Full Data (No Date Filter)")
-        # Top Plot: Full data, row-wise %
         fig_full_pct = create_percentage_heatmap(df_shortlisted)
-        st.plotly_chart(fig_full_pct, use_container_width=True)
+        st.plotly_chart(fig_full_pct, use_container_width=True, key="percentage_top_tab2")
 
         st.subheader(f"Bottom Plot (Row-wise %) - Date Filtered [{start_date} to {end_date}]")
-        # Bottom Plot: Row-wise %, global date filter
         fig_filtered_pct = create_percentage_heatmap(df_bottom_filtered)
-        st.plotly_chart(fig_filtered_pct, use_container_width=True)
+        st.plotly_chart(fig_filtered_pct, use_container_width=True, key="percentage_bottom_tab2")
 
     # ================================================
     # TAB 3: ROW-WISE % + APP & CLUSTER FILTERS
@@ -212,7 +211,8 @@ def main():
         selected_apps = st.multiselect(
             "Select App(s)",
             options=all_apps,
-            default=all_apps  # default to all
+            default=all_apps, 
+            key="apps_tab3"
         )
 
         # 2. Let user pick Clusters
@@ -220,34 +220,32 @@ def main():
         selected_clusters = st.multiselect(
             "Select kmeans_cluster_name(s)",
             options=all_clusters,
-            default=all_clusters  # default to all
+            default=all_clusters,
+            key="clusters_tab3"
         )
 
-        # 3. Filter the data by selected Apps and Clusters
-        df_tab3_filtered = df_shortlisted.copy()
+        # 3. Filter the data by selected Apps and Clusters (TOP plot)
+        df_tab3_filtered_top = df_shortlisted.copy()
         if selected_apps:
-            df_tab3_filtered = df_tab3_filtered[df_tab3_filtered['App'].isin(selected_apps)]
+            df_tab3_filtered_top = df_tab3_filtered_top[df_tab3_filtered_top['App'].isin(selected_apps)]
         if selected_clusters:
-            df_tab3_filtered = df_tab3_filtered[df_tab3_filtered['kmeans_cluster_name'].isin(selected_clusters)]
+            df_tab3_filtered_top = df_tab3_filtered_top[df_tab3_filtered_top['kmeans_cluster_name'].isin(selected_clusters)]
 
-        # 3a. TOP PLOT: row-wise % on entire date range (but with App/Cluster filters)
         st.subheader("Top Plot - Row-wise % (Filtered by App & Cluster, No Date Filter)")
-        fig_tab3_top = create_percentage_heatmap(df_tab3_filtered)
-        st.plotly_chart(fig_tab3_top, use_container_width=True)
+        fig_tab3_top = create_percentage_heatmap(df_tab3_filtered_top)
+        st.plotly_chart(fig_tab3_top, use_container_width=True, key="percentage_top_tab3")
 
-        # 3b. BOTTOM PLOT: row-wise % on date-filtered + App/Cluster
+        # 4. BOTTOM plot (App/Cluster + global date filter)
         st.subheader(f"Bottom Plot - Row-wise % (Filtered by App, Cluster, and Date [{start_date} to {end_date}])")
 
-        # Combine the same selected Apps/Clusters filters with the global date filter
-        df_tab3_bottom = df_bottom_filtered.copy()  # already date-filtered
-        # further filter by selected Apps and Clusters
+        df_tab3_filtered_bottom = df_bottom_filtered.copy()  # already date-filtered
         if selected_apps:
-            df_tab3_bottom = df_tab3_bottom[df_tab3_bottom['App'].isin(selected_apps)]
+            df_tab3_filtered_bottom = df_tab3_filtered_bottom[df_tab3_filtered_bottom['App'].isin(selected_apps)]
         if selected_clusters:
-            df_tab3_bottom = df_tab3_bottom[df_tab3_bottom['kmeans_cluster_name'].isin(selected_clusters)]
+            df_tab3_filtered_bottom = df_tab3_filtered_bottom[df_tab3_filtered_bottom['kmeans_cluster_name'].isin(selected_clusters)]
 
-        fig_tab3_bottom = create_percentage_heatmap(df_tab3_bottom)
-        st.plotly_chart(fig_tab3_bottom, use_container_width=True)
+        fig_tab3_bottom = create_percentage_heatmap(df_tab3_filtered_bottom)
+        st.plotly_chart(fig_tab3_bottom, use_container_width=True, key="percentage_bottom_tab3")
 
 
 if __name__ == "__main__":
