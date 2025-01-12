@@ -120,14 +120,14 @@ def create_percentage_heatmap(df):
     return fig
 
 
-def create_app_swot_heatmap(df):
+def get_intra_app_swot_table(df):
     """
-    1. Start with the row-wise percentage table (like create_percentage_heatmap).
-    2. Then convert those row-wise %'s into column-wise %'s.
-       Each column of that row-wise table sums to 100%.
-    3. Create a final heatmap with those column-based percentages.
+    1. Create row-wise % table from the original sums.
+    2. Convert that row-wise % table into column-wise %.
+       => Each column sums to 100%.
+    Returns the final DataFrame (NOT a figure).
     """
-    # Step A: Create row-wise percentage pivot table
+    # Create pivot table with sums
     pivot_data = df.groupby(['App', 'kmeans_cluster_name'])['thumbsUpCount_222'].sum().reset_index()
     pivot_table = pivot_data.pivot(
         index='App',
@@ -135,19 +135,28 @@ def create_app_swot_heatmap(df):
         values='thumbsUpCount_222'
     ).fillna(0)
 
+    # Row-wise %
     row_sums = pivot_table.sum(axis=1)
-    row_wise_pct_table = pivot_table.div(row_sums, axis=0) * 100  # row-wise %
+    row_wise_pct_table = pivot_table.div(row_sums, axis=0) * 100
 
-    # Step B: Convert row-wise percentages => column-wise percentages
-    col_sums = row_wise_pct_table.sum(axis=0)  # sum each column
-    col_wise_pct_table = row_wise_pct_table.div(col_sums, axis=1) * 100  # column-wise %
+    # Column-wise %
+    col_sums = row_wise_pct_table.sum(axis=0)
+    col_wise_pct_table = row_wise_pct_table.div(col_sums, axis=1) * 100
 
-    # Create heatmap from the final table
+    return col_wise_pct_table
+
+
+def create_intra_app_swot_heatmap(df_table):
+    """
+    Given the final table from get_intra_app_swot_table(df),
+    create a heatmap for the "Intra-App SWOT Analysis".
+    Each column sums to 100%.
+    """
     fig = px.imshow(
-        col_wise_pct_table,
+        df_table,
         labels=dict(x="", y="", color=""),
-        x=col_wise_pct_table.columns,
-        y=col_wise_pct_table.index,
+        x=df_table.columns,
+        y=df_table.index,
         color_continuous_scale="OrRd",
         text_auto=True,
         aspect="auto"
@@ -171,13 +180,63 @@ def create_app_swot_heatmap(df):
         coloraxis_showscale=False
     )
 
-    # In the final table, each column sums to 100%. 
-    # So we label the hover accordingly.
+    # Hover template: column-wise % (each column sums to 100%)
     fig.update_traces(
         hovertemplate=(
             "<b>App:</b> %{y}<br>"
             "<b>kmeans_cluster_name:</b> %{x}<br>"
             "<b>Column % (SWOT):</b> %{z:.2f}%"
+        ),
+        texttemplate="%{z:.1f}",
+        textfont_size=12
+    )
+
+    return fig
+
+
+def create_inter_app_strength_heatmap(df_table):
+    """
+    Takes the final table from Intra-App SWOT (column-wise %)
+    and converts it to a row-wise % table => each row sums to 100%.
+    """
+    # row-wise % from the final Intra-App table
+    row_sums = df_table.sum(axis=1)
+    row_wise_again = df_table.div(row_sums, axis=0) * 100
+
+    fig = px.imshow(
+        row_wise_again,
+        labels=dict(x="", y="", color=""),
+        x=row_wise_again.columns,
+        y=row_wise_again.index,
+        color_continuous_scale="OrRd",
+        text_auto=True,
+        aspect="auto"
+    )
+
+    fig.update_xaxes(
+        tickangle=45,
+        tickfont=dict(size=14)
+    )
+    fig.update_yaxes(
+        tickfont=dict(size=14)
+    )
+
+    fig.update_layout(
+        autosize=False,
+        width=3200,
+        height=900,
+        margin=dict(l=60, r=60, t=80, b=50),
+        xaxis_title=None,
+        yaxis_title=None,
+        coloraxis_showscale=False
+    )
+
+    # Hover template: row-wise % (each row sums to 100%)
+    fig.update_traces(
+        hovertemplate=(
+            "<b>App:</b> %{y}<br>"
+            "<b>kmeans_cluster_name:</b> %{x}<br>"
+            "<b>Row % (Inter-App):</b> %{z:.2f}%"
         ),
         texttemplate="%{z:.1f}",
         textfont_size=12
@@ -232,7 +291,7 @@ def main():
         "Tab 1: Summation Heatmaps",
         "Tab 2: Row-wise % Heatmaps",
         "Tab 3: Row-wise % + App/Cluster Filter",
-        "Tab 4: App-wise SWOT Analysis"
+        "Tab 4: SWOT & Strength Analysis"
     ])
 
     # ===========================
@@ -311,15 +370,33 @@ def main():
         st.plotly_chart(fig_tab3_bottom, use_container_width=True, key="percentage_bottom_tab3")
 
     # ================================================
-    # TAB 4: APP-WISE SWOT ANALYSIS
+    # TAB 4: SWOT & STRENGTH ANALYSIS
     # ================================================
     with tab4:
-        st.subheader("App-wise SWOT Analysis (Column-based % of Row-wise % table)")
-        st.markdown("This table starts with **row-wise %** of thumbsUpCount_222 across Apps, then converts those values to **column-wise %** to see distribution across each kmeans_cluster_name column. No date filter in this tab.")
+        st.subheader("Intra-App SWOT Analysis (Top Plot, Full Data)")
+        st.markdown(
+            "This top plot starts with **row-wise %** of thumbsUpCount_222, "
+            "then converts those values to **column-wise %** so each column sums to 100%."
+        )
 
-        # Simply use the full data (no date filter) for the SWOT table
-        fig_swot = create_app_swot_heatmap(df_shortlisted)
-        st.plotly_chart(fig_swot, use_container_width=True, key="app_swot_tab4")
+        # 1. Get the final table (row-wise % -> column-wise %)
+        #    We'll use the full data (no date filter) here
+        intra_app_table = get_intra_app_swot_table(df_shortlisted)
+
+        # 2. Create the top heatmap (Intra-App SWOT)
+        fig_intra_app_swot = create_intra_app_swot_heatmap(intra_app_table)
+        st.plotly_chart(fig_intra_app_swot, use_container_width=True, key="tab4_intra_app_swot_top")
+
+        st.subheader("Inter-App Strength Analysis (Bottom Plot, Full Data)")
+        st.markdown(
+            "Now we take the Intra-App SWOT table above (where each column sums to 100%) "
+            "and calculate **row-wise %** again, so each row sums to 100%. "
+            "We call this 'Inter-App Strength Analysis.'"
+        )
+
+        # 3. Create the bottom heatmap (Inter-App Strength)
+        fig_inter_app_strength = create_inter_app_strength_heatmap(intra_app_table)
+        st.plotly_chart(fig_inter_app_strength, use_container_width=True, key="tab4_intra_app_strength_bottom")
 
 
 if __name__ == "__main__":
