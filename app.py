@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import datetime
 
 def create_heatmap(df):
     """
@@ -14,14 +15,15 @@ def create_heatmap(df):
                                    values='thumbsUpCount_222').fillna(0)
     
     # Create the heatmap using Plotly Express
+    # Using a color scale that emphasizes higher values in red
     fig = px.imshow(
         pivot_table,
         labels=dict(x="", y="", color=""),  # Hide axis and color titles
         x=pivot_table.columns,
         y=pivot_table.index,
-        color_continuous_scale="RdBu",
-        text_auto=True,       # Display summation values on cells
-        aspect="auto"         # Maintains the aspect ratio automatically
+        color_continuous_scale="OrRd",      # Highlights higher values with deeper reds
+        text_auto=True,                     # Display summation values on cells
+        aspect="auto"                       # Maintains the aspect ratio automatically
     )
 
     # Rotate x-axis labels and increase axis-label font size
@@ -36,7 +38,7 @@ def create_heatmap(df):
     # Increase figure size (width & height) and adjust margins
     fig.update_layout(
         autosize=False,
-        width=2500,    # Increase width as needed
+        width=2900,    # Increase width as needed
         height=900,    # Increase height as needed
         margin=dict(l=60, r=60, t=80, b=50),
         xaxis_title=None,      # Remove the x-axis title
@@ -82,16 +84,26 @@ def main():
     min_date = df_shortlisted['at'].min().date()
     max_date = df_shortlisted['at'].max().date()
 
-    # Set default start date to min_date and default end date to max_date
+    # Default start date: 1st January of current year
+    # Default end date: today's date
+    today = datetime.date.today()
+    current_year = today.year
+    start_of_year = datetime.date(current_year, 1, 1)
+
+    # Ensure the defaults don't exceed the data's min/max date
+    # in case the data is older or doesn't extend to today's date.
+    default_start = max(min_date, start_of_year)   # use the later of min_date or start_of_year
+    default_end = min(max_date, today)             # use the earlier of max_date or today's date
+
     start_date = st.date_input(
         "Select start date",
-        value=min_date,    # Default is the earliest date
+        value=default_start,
         min_value=min_date,
         max_value=max_date
     )
     end_date = st.date_input(
         "Select end date",
-        value=max_date,    # Default is the latest date
+        value=default_end,
         min_value=min_date,
         max_value=max_date
     )
