@@ -30,7 +30,7 @@ def create_summation_heatmap(df):
     fig.update_layout(
         autosize=False,
         width=3200,
-        height=900,
+        height=900,  # default height
         margin=dict(l=60, r=60, t=80, b=50),
         xaxis_title=None,
         yaxis_title=None,
@@ -42,7 +42,6 @@ def create_summation_heatmap(df):
                       "<b>Sum thumbsUpCount_222:</b> %{z}",
         textfont_size=12
     )
-
     return fig
 
 
@@ -76,7 +75,7 @@ def create_percentage_heatmap(df):
     fig.update_layout(
         autosize=False,
         width=3200,
-        height=900,
+        height=900,  # default height
         margin=dict(l=60, r=60, t=80, b=50),
         xaxis_title=None,
         yaxis_title=None,
@@ -89,7 +88,6 @@ def create_percentage_heatmap(df):
         texttemplate="%{z:.1f}",
         textfont_size=12
     )
-
     return fig
 
 
@@ -107,11 +105,9 @@ def get_intra_app_swot_table(df):
         values='thumbsUpCount_222'
     ).fillna(0)
 
-    # Row-wise %
     row_sums = pivot_table.sum(axis=1)
     row_wise_pct_table = pivot_table.div(row_sums, axis=0) * 100
 
-    # Column-wise %
     col_sums = row_wise_pct_table.sum(axis=0)
     col_wise_pct_table = row_wise_pct_table.div(col_sums, axis=1) * 100
 
@@ -149,7 +145,6 @@ def create_intra_app_swot_heatmap(df_table):
         texttemplate="%{z:.1f}",
         textfont_size=12
     )
-
     return fig
 
 
@@ -188,7 +183,6 @@ def create_inter_app_strength_heatmap(df_table):
         texttemplate="%{z:.1f}",
         textfont_size=12
     )
-
     return fig
 
 
@@ -243,7 +237,6 @@ def create_monthly_scatter_plot(df):
         title_text="Summation of ThumbsUpCount_222",
         tickfont=dict(size=12)
     )
-
     return fig
 
 
@@ -297,13 +290,12 @@ def create_daily_scatter_plot(df):
         title_text="Summation of ThumbsUpCount_222",
         tickfont=dict(size=12)
     )
-
     return fig
 
 
-#
-# NEW HELPER FUNCTIONS FOR TAB 6
-#
+# --------------------------------------------------------------------------------
+# Updated helper functions for Tab 6 with increased height
+# --------------------------------------------------------------------------------
 def create_appversion_summation_heatmap(df_app_filtered):
     """
     Summation heatmap where rows = appVersion, columns = kmeans_cluster_name,
@@ -328,10 +320,12 @@ def create_appversion_summation_heatmap(df_app_filtered):
 
     fig.update_xaxes(tickangle=45, tickfont=dict(size=14))
     fig.update_yaxes(tickfont=dict(size=14))
+
+    # Increase height to 1100 (or other desired value)
     fig.update_layout(
         autosize=False,
         width=2200,
-        height=700,
+        height=1100,  # <--- increased height
         margin=dict(l=60, r=60, t=80, b=50),
         coloraxis_showscale=False
     )
@@ -341,7 +335,6 @@ def create_appversion_summation_heatmap(df_app_filtered):
                       "<b>Sum thumbsUpCount_222:</b> %{z}",
         textfont_size=12
     )
-
     return fig
 
 
@@ -373,10 +366,12 @@ def create_appversion_percentage_heatmap(df_app_filtered):
 
     fig.update_xaxes(tickangle=45, tickfont=dict(size=14))
     fig.update_yaxes(tickfont=dict(size=14))
+
+    # Increase height to 1100 (or other desired value)
     fig.update_layout(
         autosize=False,
         width=2200,
-        height=700,
+        height=1100,  # <--- increased height
         margin=dict(l=60, r=60, t=80, b=50),
         coloraxis_showscale=False
     )
@@ -387,7 +382,6 @@ def create_appversion_percentage_heatmap(df_app_filtered):
         texttemplate="%{z:.1f}",
         textfont_size=12
     )
-
     return fig
 
 
@@ -583,14 +577,14 @@ def main():
         # 2) Filter data for that App
         df_tab6 = df_shortlisted[df_shortlisted['App'] == selected_app_6].copy()
 
-        # 3) Summation heatmap
+        # 3) Summation heatmap (increased height)
         st.subheader("Top Plot: Summation Heatmap (appVersion vs. kmeans_cluster_name)")
-        fig_tab6_sum = create_appversion_summation_heatmap(df_tab6)
+        fig_tab6_sum = create_appversion_summation_heatmap(df_tab6)  # <-- increased height inside function
         st.plotly_chart(fig_tab6_sum, use_container_width=True, key="tab6_sum_heatmap")
 
-        # 4) Row-wise percentage heatmap
+        # 4) Row-wise percentage heatmap (increased height)
         st.subheader("Bottom Plot: Row-wise Percentage Heatmap")
-        fig_tab6_pct = create_appversion_percentage_heatmap(df_tab6)
+        fig_tab6_pct = create_appversion_percentage_heatmap(df_tab6)  # <-- increased height inside function
         st.plotly_chart(fig_tab6_pct, use_container_width=True, key="tab6_pct_heatmap")
 
 
