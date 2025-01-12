@@ -30,10 +30,10 @@ def create_summation_heatmap(df):
     # Rotate x-axis labels and increase axis-label font size
     fig.update_xaxes(
         tickangle=45,
-        tickfont=dict(size=14)  # Increase X-axis category label font size
+        tickfont=dict(size=14)
     )
     fig.update_yaxes(
-        tickfont=dict(size=14)  # Increase Y-axis category label font size
+        tickfont=dict(size=14)
     )
 
     # Increase figure size (width & height) and adjust margins
@@ -49,12 +49,10 @@ def create_summation_heatmap(df):
 
     # Increase the font size of the text labels on each cell
     fig.update_traces(
-        hovertemplate=(
-            "<b>App:</b> %{y}<br>"
-            "<b>kmeans_cluster_name:</b> %{x}<br>"
-            "<b>Sum thumbsUpCount_222:</b> %{z}"
-        ),
-        textfont_size=12  # Increase cell text (summation) size
+        hovertemplate="<b>App:</b> %{y}<br>"
+                      "<b>kmeans_cluster_name:</b> %{x}<br>"
+                      "<b>Sum thumbsUpCount_222:</b> %{z}",
+        textfont_size=12
     )
 
     return fig
@@ -77,7 +75,6 @@ def create_percentage_heatmap(df):
     row_sums = pivot_table.sum(axis=1)
     percentage_table = pivot_table.div(row_sums, axis=0) * 100  # row-wise %
 
-    # Create heatmap for percentages
     fig = px.imshow(
         percentage_table,
         labels=dict(x="", y="", color=""),
@@ -108,11 +105,9 @@ def create_percentage_heatmap(df):
 
     # Show percentages with 1 decimal in cells, 2 decimals on hover
     fig.update_traces(
-        hovertemplate=(
-            "<b>App:</b> %{y}<br>"
-            "<b>kmeans_cluster_name:</b> %{x}<br>"
-            "<b>% of thumbsUpCount_222 in row:</b> %{z:.2f}%"
-        ),
+        hovertemplate="<b>App:</b> %{y}<br>"
+                      "<b>kmeans_cluster_name:</b> %{x}<br>"
+                      "<b>% of thumbsUpCount_222 in row:</b> %{z:.2f}%",
         texttemplate="%{z:.1f}",
         textfont_size=12
     )
@@ -127,7 +122,6 @@ def get_intra_app_swot_table(df):
        => Each column sums to 100%.
     Returns the final DataFrame (NOT a figure).
     """
-    # Create pivot table with sums
     pivot_data = df.groupby(['App', 'kmeans_cluster_name'])['thumbsUpCount_222'].sum().reset_index()
     pivot_table = pivot_data.pivot(
         index='App',
@@ -148,8 +142,6 @@ def get_intra_app_swot_table(df):
 
 def create_intra_app_swot_heatmap(df_table):
     """
-    Given the final table from get_intra_app_swot_table(df),
-    create a heatmap for the "Intra-App SWOT Analysis".
     Each column sums to 100%.
     """
     fig = px.imshow(
@@ -162,31 +154,21 @@ def create_intra_app_swot_heatmap(df_table):
         aspect="auto"
     )
 
-    fig.update_xaxes(
-        tickangle=45,
-        tickfont=dict(size=14)
-    )
-    fig.update_yaxes(
-        tickfont=dict(size=14)
-    )
+    fig.update_xaxes(tickangle=45, tickfont=dict(size=14))
+    fig.update_yaxes(tickfont=dict(size=14))
 
     fig.update_layout(
         autosize=False,
         width=3200,
         height=900,
         margin=dict(l=60, r=60, t=80, b=50),
-        xaxis_title=None,
-        yaxis_title=None,
         coloraxis_showscale=False
     )
 
-    # Hover template: column-wise % (each column sums to 100%)
     fig.update_traces(
-        hovertemplate=(
-            "<b>App:</b> %{y}<br>"
-            "<b>kmeans_cluster_name:</b> %{x}<br>"
-            "<b>Column % (SWOT):</b> %{z:.2f}%"
-        ),
+        hovertemplate="<b>App:</b> %{y}<br>"
+                      "<b>kmeans_cluster_name:</b> %{x}<br>"
+                      "<b>Column % (SWOT):</b> %{z:.2f}%",
         texttemplate="%{z:.1f}",
         textfont_size=12
     )
@@ -199,7 +181,6 @@ def create_inter_app_strength_heatmap(df_table):
     Takes the final table from Intra-App SWOT (column-wise %)
     and converts it to a row-wise % table => each row sums to 100%.
     """
-    # row-wise % from the final Intra-App table
     row_sums = df_table.sum(axis=1)
     row_wise_again = df_table.div(row_sums, axis=0) * 100
 
@@ -213,31 +194,21 @@ def create_inter_app_strength_heatmap(df_table):
         aspect="auto"
     )
 
-    fig.update_xaxes(
-        tickangle=45,
-        tickfont=dict(size=14)
-    )
-    fig.update_yaxes(
-        tickfont=dict(size=14)
-    )
+    fig.update_xaxes(tickangle=45, tickfont=dict(size=14))
+    fig.update_yaxes(tickfont=dict(size=14))
 
     fig.update_layout(
         autosize=False,
         width=3200,
         height=900,
         margin=dict(l=60, r=60, t=80, b=50),
-        xaxis_title=None,
-        yaxis_title=None,
         coloraxis_showscale=False
     )
 
-    # Hover template: row-wise % (each row sums to 100%)
     fig.update_traces(
-        hovertemplate=(
-            "<b>App:</b> %{y}<br>"
-            "<b>kmeans_cluster_name:</b> %{x}<br>"
-            "<b>Row % (Inter-App):</b> %{z:.2f}%"
-        ),
+        hovertemplate="<b>App:</b> %{y}<br>"
+                      "<b>kmeans_cluster_name:</b> %{x}<br>"
+                      "<b>Row % (Inter-App):</b> %{z:.2f}%",
         texttemplate="%{z:.1f}",
         textfont_size=12
     )
@@ -245,29 +216,26 @@ def create_inter_app_strength_heatmap(df_table):
     return fig
 
 
-# NEW FUNCTION: Create monthly scatter plot for a single App
 def create_monthly_scatter_plot(df):
     """
-    Given a DataFrame df (already filtered by one App and possibly limited clusters),
-    - Convert 'at' to month (e.g., 'YYYY-MM-01' or a monthly frequency).
-    - Group by [month, kmeans_cluster_name] and sum thumbsUpCount_222.
-    - Plot a scatter with x=month, y=summation, color=kmeans_cluster_name.
+    - Convert 'at' to monthly period
+    - Group by (month_year, kmeans_cluster_name) summing thumbsUpCount_222
+    - Circle size = sum(thumbsUpCount_222)
+    - Legend at the bottom
     """
     if df.empty:
-        return None  # Return None if no data to plot
+        return None
 
-    # Convert 'at' to monthly period and back to a timestamp (e.g., start of month)
     df['month_year'] = df['at'].dt.to_period("M").dt.to_timestamp()
-
-    # Group by month_year + cluster
     grouped = df.groupby(['month_year', 'kmeans_cluster_name'])['thumbsUpCount_222'].sum().reset_index()
 
-    # Create a scatter plot
     fig = px.scatter(
         grouped,
         x='month_year',
         y='thumbsUpCount_222',
         color='kmeans_cluster_name',
+        size='thumbsUpCount_222',      # <--- Circle size proportional to thumbsUpCount_222
+        size_max=40,                   # Adjust max circle size if needed
         title="Monthly Summation of ThumbsUpCount_222 by kmeans_cluster_name",
         labels={
             'month_year': 'Month',
@@ -276,19 +244,85 @@ def create_monthly_scatter_plot(df):
         hover_data=['kmeans_cluster_name', 'thumbsUpCount_222'],
     )
 
-    # Update axes, layout
+    # Move legend to bottom
     fig.update_layout(
         autosize=False,
         width=1200,
         height=600,
         margin=dict(l=60, r=60, t=80, b=50),
+        legend=dict(
+            orientation="h",
+            yanchor="top",
+            y=-0.2,
+            xanchor="center",
+            x=0.5
+        )
     )
-    # Make x-axis show months nicely
+
+    # Format x-axis to show months
     fig.update_xaxes(
         tickformat="%Y-%m",
         tickangle=45,
         tickfont=dict(size=12),
         title_text="Month"
+    )
+    fig.update_yaxes(
+        title_text="Summation of ThumbsUpCount_222",
+        tickfont=dict(size=12)
+    )
+
+    return fig
+
+
+def create_daily_scatter_plot(df):
+    """
+    - Convert 'at' to day (just date)
+    - Group by (day, kmeans_cluster_name) summing thumbsUpCount_222
+    - Circle size = sum(thumbsUpCount_222)
+    - Legend at the bottom
+    """
+    if df.empty:
+        return None
+
+    # Extract just the date (no time) for 'at'
+    df['day'] = df['at'].dt.date
+    grouped = df.groupby(['day', 'kmeans_cluster_name'])['thumbsUpCount_222'].sum().reset_index()
+
+    fig = px.scatter(
+        grouped,
+        x='day',
+        y='thumbsUpCount_222',
+        color='kmeans_cluster_name',
+        size='thumbsUpCount_222',      # Circle size proportional to thumbsUpCount_222
+        size_max=40,
+        title="Daily Summation of ThumbsUpCount_222 by kmeans_cluster_name",
+        labels={
+            'day': 'Day',
+            'thumbsUpCount_222': 'Sum Thumbs Up'
+        },
+        hover_data=['kmeans_cluster_name', 'thumbsUpCount_222'],
+    )
+
+    # Move legend to bottom
+    fig.update_layout(
+        autosize=False,
+        width=1200,
+        height=600,
+        margin=dict(l=60, r=60, t=80, b=50),
+        legend=dict(
+            orientation="h",
+            yanchor="top",
+            y=-0.2,
+            xanchor="center",
+            x=0.5
+        )
+    )
+
+    # Format x-axis to show day (YYYY-MM-DD)
+    fig.update_xaxes(
+        tickangle=45,
+        tickfont=dict(size=12),
+        title_text="Day"
     )
     fig.update_yaxes(
         title_text="Summation of ThumbsUpCount_222",
@@ -345,7 +379,7 @@ def main():
         "Tab 2: Row-wise % Heatmaps",
         "Tab 3: Row-wise % + App/Cluster Filter",
         "Tab 4: SWOT & Strength Analysis",
-        "Tab 5: Single App Monthly Chart"
+        "Tab 5: Single App Time Charts"
     ])
 
     # ===========================
@@ -382,7 +416,6 @@ def main():
             "These filters apply to **both** the top (full date range) and bottom (date-filtered) plots."
         )
 
-        # 1. Let user pick Apps
         all_apps = sorted(df_shortlisted['App'].unique())
         selected_apps = st.multiselect(
             "Select App(s)",
@@ -391,7 +424,6 @@ def main():
             key="apps_tab3"
         )
 
-        # 2. Let user pick Clusters
         all_clusters = sorted(df_shortlisted['kmeans_cluster_name'].unique())
         selected_clusters = st.multiselect(
             "Select kmeans_cluster_name(s)",
@@ -400,7 +432,6 @@ def main():
             key="clusters_tab3"
         )
 
-        # 3. Filter the data by selected Apps and Clusters (TOP plot)
         df_tab3_filtered_top = df_shortlisted.copy()
         if selected_apps:
             df_tab3_filtered_top = df_tab3_filtered_top[df_tab3_filtered_top['App'].isin(selected_apps)]
@@ -411,10 +442,9 @@ def main():
         fig_tab3_top = create_percentage_heatmap(df_tab3_filtered_top)
         st.plotly_chart(fig_tab3_top, use_container_width=True, key="percentage_top_tab3")
 
-        # 4. BOTTOM plot (App/Cluster + global date filter)
         st.subheader(f"Bottom Plot - Row-wise % (Filtered by App, Cluster, and Date [{start_date} to {end_date}])")
 
-        df_tab3_filtered_bottom = df_bottom_filtered.copy()  # already date-filtered
+        df_tab3_filtered_bottom = df_bottom_filtered.copy()
         if selected_apps:
             df_tab3_filtered_bottom = df_tab3_filtered_bottom[df_tab3_filtered_bottom['App'].isin(selected_apps)]
         if selected_clusters:
@@ -433,11 +463,7 @@ def main():
             "then converts those values to **column-wise %** so each column sums to 100%."
         )
 
-        # 1. Get the final table (row-wise % -> column-wise %)
-        #    We'll use the full data (no date filter) here
         intra_app_table = get_intra_app_swot_table(df_shortlisted)
-
-        # 2. Create the top heatmap (Intra-App SWOT)
         fig_intra_app_swot = create_intra_app_swot_heatmap(intra_app_table)
         st.plotly_chart(fig_intra_app_swot, use_container_width=True, key="tab4_intra_app_swot_top")
 
@@ -448,18 +474,18 @@ def main():
             "We call this 'Inter-App Strength Analysis.'"
         )
 
-        # 3. Create the bottom heatmap (Inter-App Strength)
         fig_inter_app_strength = create_inter_app_strength_heatmap(intra_app_table)
         st.plotly_chart(fig_inter_app_strength, use_container_width=True, key="tab4_intra_app_strength_bottom")
 
     # ================================================
-    # TAB 5: SINGLE APP MONTHLY CHART
+    # TAB 5: SINGLE APP TIME CHARTS
     # ================================================
     with tab5:
-        st.subheader("Single App Monthly Summation Chart (No Date Filter)")
+        st.subheader("Single App - Monthly and Daily Summation Charts (No Date Filter)")
         st.markdown(
             "Pick an **App** and optionally some **kmeans_cluster_name** categories. "
-            "We’ll plot monthly summation of thumbsUpCount_222 with distinct colors for each cluster."
+            "We’ll plot monthly and daily summations of thumbsUpCount_222 with distinct colors for each cluster. "
+            "Circle size is proportional to thumbsUpCount_222, and the legend is shown at the bottom."
         )
 
         # 1. Let user pick one App
@@ -479,20 +505,27 @@ def main():
             key="tab5_clusters"
         )
 
-        # 3. Filter the data for that single App and any chosen clusters
+        # 3. Filter the data for that single App and chosen clusters
         df_tab5 = df_shortlisted.copy()
         df_tab5 = df_tab5[df_tab5['App'] == selected_app_5]
-
         if selected_clusters_5:
             df_tab5 = df_tab5[df_tab5['kmeans_cluster_name'].isin(selected_clusters_5)]
 
-        # 4. Create monthly scatter plot
-        fig_tab5 = create_monthly_scatter_plot(df_tab5)
-
-        if fig_tab5 is None:
-            st.warning("No data available for the selected filters.")
+        # =========== TOP PLOT (MONTHLY) ===========
+        st.subheader("Monthly Summation Chart")
+        fig_monthly = create_monthly_scatter_plot(df_tab5)
+        if fig_monthly is None:
+            st.warning("No data available for the selected filters (monthly).")
         else:
-            st.plotly_chart(fig_tab5, use_container_width=True, key="tab5_monthly_scatter")
+            st.plotly_chart(fig_monthly, use_container_width=True, key="tab5_monthly_scatter")
+
+        # =========== BOTTOM PLOT (DAILY) ===========
+        st.subheader("Daily Summation Chart")
+        fig_daily = create_daily_scatter_plot(df_tab5)
+        if fig_daily is None:
+            st.warning("No data available for the selected filters (daily).")
+        else:
+            st.plotly_chart(fig_daily, use_container_width=True, key="tab5_daily_scatter")
 
 
 if __name__ == "__main__":
