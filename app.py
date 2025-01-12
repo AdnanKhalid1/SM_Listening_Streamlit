@@ -457,7 +457,7 @@ def main():
     # TAB 4: SWOT & STRENGTH ANALYSIS
     # ================================================
     with tab4:
-        st.subheader("Intra-App SWOT Analysis (Top Plot, Full Data)")
+        st.subheader("Inter-App SWOT Analysis (Top Plot, Full Data)")
         st.markdown(
             "This top plot starts with **row-wise %** of thumbsUpCount_222, "
             "then converts those values to **column-wise %** so each column sums to 100%."
@@ -467,7 +467,7 @@ def main():
         fig_intra_app_swot = create_intra_app_swot_heatmap(intra_app_table)
         st.plotly_chart(fig_intra_app_swot, use_container_width=True, key="tab4_intra_app_swot_top")
 
-        st.subheader("Inter-App Strength Analysis (Bottom Plot, Full Data)")
+        st.subheader("Intra-App Strength Analysis (Bottom Plot, Full Data)")
         st.markdown(
             "Now we take the Intra-App SWOT table above (where each column sums to 100%) "
             "and calculate **row-wise %** again, so each row sums to 100%. "
