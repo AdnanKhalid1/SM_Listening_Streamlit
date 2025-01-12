@@ -14,7 +14,6 @@ def create_heatmap(df):
                                    values='thumbsUpCount_222').fillna(0)
     
     # Create the heatmap using Plotly Express
-    # Note: Removing the 'title' parameter to avoid duplicate subtitle.
     fig = px.imshow(
         pivot_table,
         labels=dict(x="", y="", color=""),  # Hide axis and color titles
@@ -25,8 +24,14 @@ def create_heatmap(df):
         aspect="auto"         # Maintains the aspect ratio automatically
     )
 
-    # Rotate the x-axis tick labels by 45 degrees
-    fig.update_xaxes(tickangle=45)
+    # Rotate x-axis labels and increase axis-label font size
+    fig.update_xaxes(
+        tickangle=45,
+        tickfont=dict(size=14)  # Increase X-axis category label font size
+    )
+    fig.update_yaxes(
+        tickfont=dict(size=14)  # Increase Y-axis category label font size
+    )
 
     # Increase figure size (width & height) and adjust margins
     fig.update_layout(
@@ -77,19 +82,21 @@ def main():
     min_date = df_shortlisted['at'].min().date()
     max_date = df_shortlisted['at'].max().date()
 
+    # Set default start date to min_date and default end date to max_date
     start_date = st.date_input(
         "Select start date",
-        min_date,
+        value=min_date,    # Default is the earliest date
         min_value=min_date,
         max_value=max_date
     )
     end_date = st.date_input(
         "Select end date",
-        max_date,
+        value=max_date,    # Default is the latest date
         min_value=min_date,
         max_value=max_date
     )
 
+    # If the start date is greater than the end date, show error
     if start_date > end_date:
         st.error("Error: Start date must be before or same as end date.")
         return
