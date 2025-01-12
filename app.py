@@ -120,6 +120,72 @@ def create_percentage_heatmap(df):
     return fig
 
 
+def create_app_swot_heatmap(df):
+    """
+    1. Start with the row-wise percentage table (like create_percentage_heatmap).
+    2. Then convert those row-wise %'s into column-wise %'s.
+       Each column of that row-wise table sums to 100%.
+    3. Create a final heatmap with those column-based percentages.
+    """
+    # Step A: Create row-wise percentage pivot table
+    pivot_data = df.groupby(['App', 'kmeans_cluster_name'])['thumbsUpCount_222'].sum().reset_index()
+    pivot_table = pivot_data.pivot(
+        index='App',
+        columns='kmeans_cluster_name',
+        values='thumbsUpCount_222'
+    ).fillna(0)
+
+    row_sums = pivot_table.sum(axis=1)
+    row_wise_pct_table = pivot_table.div(row_sums, axis=0) * 100  # row-wise %
+
+    # Step B: Convert row-wise percentages => column-wise percentages
+    col_sums = row_wise_pct_table.sum(axis=0)  # sum each column
+    col_wise_pct_table = row_wise_pct_table.div(col_sums, axis=1) * 100  # column-wise %
+
+    # Create heatmap from the final table
+    fig = px.imshow(
+        col_wise_pct_table,
+        labels=dict(x="", y="", color=""),
+        x=col_wise_pct_table.columns,
+        y=col_wise_pct_table.index,
+        color_continuous_scale="OrRd",
+        text_auto=True,
+        aspect="auto"
+    )
+
+    fig.update_xaxes(
+        tickangle=45,
+        tickfont=dict(size=14)
+    )
+    fig.update_yaxes(
+        tickfont=dict(size=14)
+    )
+
+    fig.update_layout(
+        autosize=False,
+        width=3200,
+        height=900,
+        margin=dict(l=60, r=60, t=80, b=50),
+        xaxis_title=None,
+        yaxis_title=None,
+        coloraxis_showscale=False
+    )
+
+    # In the final table, each column sums to 100%. 
+    # So we label the hover accordingly.
+    fig.update_traces(
+        hovertemplate=(
+            "<b>App:</b> %{y}<br>"
+            "<b>kmeans_cluster_name:</b> %{x}<br>"
+            "<b>Column % (SWOT):</b> %{z:.2f}%"
+        ),
+        texttemplate="%{z:.1f}",
+        textfont_size=12
+    )
+
+    return fig
+
+
 def main():
     st.set_page_config(page_title="Heatmap Dashboard", layout="wide")
     st.markdown("### Heatmap of Summation of Thumbs Up Counts")
@@ -130,9 +196,9 @@ def main():
     df_shortlisted = pd.read_pickle('df_shortlisted.pkl')
 
     # ----------------------------------------------------------------
-    # GLOBAL DATE FILTER (applies to bottom plots in all tabs)
+    # GLOBAL DATE FILTER (applies to bottom plots in tabs 1-3)
     # ----------------------------------------------------------------
-    st.write("#### Global Date Filter for Bottom Plots (All Tabs)")
+    st.write("#### Global Date Filter for Bottom Plots (All Tabs Except Tab 4)")
     min_date = df_shortlisted['at'].min().date()
     max_date = df_shortlisted['at'].max().date()
 
@@ -153,11 +219,8 @@ def main():
 
     if start_date > end_date:
         st.error("Error: Start date must be before or same as end date.")
-        # Instead of st.stop(), just skip creating bottom plots
-        # return or pass
-        pass
 
-    # Create a filtered DataFrame for the BOTTOM plots in each tab
+    # Create a filtered DataFrame for the BOTTOM plots in each tab (1-3)
     mask_global = (df_shortlisted['at'].dt.date >= start_date) & \
                   (df_shortlisted['at'].dt.date <= end_date)
     df_bottom_filtered = df_shortlisted.loc[mask_global].copy()
@@ -165,10 +228,11 @@ def main():
     # ----------------------------------------------------------------
     # CREATE TABS
     # ----------------------------------------------------------------
-    tab1, tab2, tab3 = st.tabs([
+    tab1, tab2, tab3, tab4 = st.tabs([
         "Tab 1: Summation Heatmaps",
         "Tab 2: Row-wise % Heatmaps",
-        "Tab 3: Row-wise % with App/Cluster Filter"
+        "Tab 3: Row-wise % + App/Cluster Filter",
+        "Tab 4: App-wise SWOT Analysis"
     ])
 
     # ===========================
@@ -176,7 +240,6 @@ def main():
     # ===========================
     with tab1:
         st.subheader("Top Plot (Summation) - Full Data (No Date Filter)")
-        # Top Plot: Full data, summation
         fig_full_sum = create_summation_heatmap(df_shortlisted)
         st.plotly_chart(fig_full_sum, use_container_width=True, key="summation_top_tab1")
 
@@ -246,6 +309,17 @@ def main():
 
         fig_tab3_bottom = create_percentage_heatmap(df_tab3_filtered_bottom)
         st.plotly_chart(fig_tab3_bottom, use_container_width=True, key="percentage_bottom_tab3")
+
+    # ================================================
+    # TAB 4: APP-WISE SWOT ANALYSIS
+    # ================================================
+    with tab4:
+        st.subheader("App-wise SWOT Analysis (Column-based % of Row-wise % table)")
+        st.markdown("This table starts with **row-wise %** of thumbsUpCount_222 across Apps, then converts those values to **column-wise %** to see distribution across each kmeans_cluster_name column. No date filter in this tab.")
+
+        # Simply use the full data (no date filter) for the SWOT table
+        fig_swot = create_app_swot_heatmap(df_shortlisted)
+        st.plotly_chart(fig_swot, use_container_width=True, key="app_swot_tab4")
 
 
 if __name__ == "__main__":
