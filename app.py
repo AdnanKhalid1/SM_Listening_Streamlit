@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-def create_heatmap(df, title="Heatmap of Summation of thumbsUpCount_222"):
+def create_heatmap(df, title="Heatmap"):
     """
     Given a DataFrame df with 'App', 'kmeans_cluster_name', and 'thumbsUpCount_222',
     this function pivots the data and creates a Plotly heatmap figure.
@@ -14,38 +14,36 @@ def create_heatmap(df, title="Heatmap of Summation of thumbsUpCount_222"):
                                    values='thumbsUpCount_222').fillna(0)
     
     # Create the heatmap using Plotly Express
-    # 'text_auto=True' will automatically display the values on each cell
     fig = px.imshow(
         pivot_table,
         labels=dict(x="kmeans_cluster_name", y="App", color=None),
-        #labels=dict(x="kmeans_cluster_name", y="App", color="Sum of thumbsUpCount_222"),
         x=pivot_table.columns,
         y=pivot_table.index,
         color_continuous_scale="RdBu",
         text_auto=True,
-        aspect="auto",  # Maintains the aspect ratio automatically
-        title=title
+        aspect="auto",
     )
 
-    # Rotate the x-axis tick labels by 45 degrees
-    fig.update_xaxes(tickangle=45)
-
-    # Increase figure size (width & height) and adjust margins
+    # Customize layout
     fig.update_layout(
         autosize=False,
-        width=2500,    # Increase width as needed
-        height=900,    # Increase height as needed
+        width=2000,  # Adjust as needed
+        height=900,  # Adjust as needed
         margin=dict(l=60, r=60, t=80, b=50),
-        xaxis_title="Category",
-        yaxis_title="App",
-        coloraxis_showscale=False  
+        title_font_size=18,  # Adjust heatmap title font size
+        coloraxis_showscale=False,  # Hide color scale
     )
+    
+    # Customize axis labels
+    fig.update_xaxes(title_text="", tickangle=45, showticklabels=True)  # Hide title but show ticks
+    fig.update_yaxes(title_text="", showticklabels=True)  # Hide title but show ticks
 
-    # Improve hover template (optionally)
+    # Customize heatmap text font size
     fig.update_traces(
         hovertemplate="<b>App:</b> %{y}<br>"
                       + "<b>kmeans_cluster_name:</b> %{x}<br>"
-                      + "<b>Sum thumbsUpCount_222:</b> %{z}"
+                      + "<b>Sum thumbsUpCount_222:</b> %{z}",
+        textfont_size=16,  # Increase font size for heatmap numbers
     )
 
     return fig
@@ -54,21 +52,21 @@ def create_heatmap(df, title="Heatmap of Summation of thumbsUpCount_222"):
 def main():
     st.set_page_config(
         page_title="Heatmap Dashboard",
-        layout="wide",  # Use the full screen width
+        layout="wide",
     )
-    st.title("Heatmap of Summation of Thumbs Up Counts")
+    # Adjusted the main title to reduce font size
+    st.header("Heatmap of Summation of Thumbs Up Counts")  # Replaced st.title with st.header
 
     # ----------------------------------------------------------------
     # 1. LOAD THE DATA
     # ----------------------------------------------------------------
-    # In real usage, remove dummy data and load your actual DataFrame
-    # Example: df_shortlisted = pd.read_pickle('df_shortlisted.pkl')
+    # In real usage, load your actual DataFrame
     df_shortlisted = pd.read_pickle('df_shortlisted.pkl')
 
     # ----------------------------------------------------------------
     # 2. FULL DATA HEATMAP
     # ----------------------------------------------------------------
-    st.subheader("Full Data Heatmap")
+    # Removed the redundant larger subtitle
     fig_full = create_heatmap(df_shortlisted, title="Full Data Heatmap")
     st.plotly_chart(fig_full, use_container_width=True)
 
@@ -96,8 +94,7 @@ def main():
     # ----------------------------------------------------------------
     # 4. FILTERED DATA HEATMAP
     # ----------------------------------------------------------------
-    st.subheader(f"Filtered Data Heatmap ({start_date} to {end_date})")
-    fig_filtered = create_heatmap(df_filtered, title="Filtered Data Heatmap")
+    fig_filtered = create_heatmap(df_filtered, title=f"Filtered Data Heatmap ({start_date} to {end_date})")
     st.plotly_chart(fig_filtered, use_container_width=True)
 
 
