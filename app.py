@@ -17,7 +17,8 @@ def create_heatmap(df, title="Heatmap of Summation of thumbsUpCount_222"):
     # 'text_auto=True' will automatically display the values on each cell
     fig = px.imshow(
         pivot_table,
-        labels=dict(x="kmeans_cluster_name", y="App", color="Sum of thumbsUpCount_222"),
+        labels=dict(x="kmeans_cluster_name", y="App", color=None),
+        #labels=dict(x="kmeans_cluster_name", y="App", color="Sum of thumbsUpCount_222"),
         x=pivot_table.columns,
         y=pivot_table.index,
         color_continuous_scale="RdBu",
@@ -32,11 +33,12 @@ def create_heatmap(df, title="Heatmap of Summation of thumbsUpCount_222"):
     # Increase figure size (width & height) and adjust margins
     fig.update_layout(
         autosize=False,
-        width=2000,    # Increase width as needed
+        width=2500,    # Increase width as needed
         height=900,    # Increase height as needed
         margin=dict(l=60, r=60, t=80, b=50),
         xaxis_title="Category",
         yaxis_title="App",
+        coloraxis_showscale=False  
     )
 
     # Improve hover template (optionally)
