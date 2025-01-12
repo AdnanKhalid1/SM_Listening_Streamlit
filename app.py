@@ -32,8 +32,8 @@ def create_heatmap(df, title="Heatmap of Summation of thumbsUpCount_222"):
     # Increase figure size (width & height) and adjust margins
     fig.update_layout(
         autosize=False,
-        width=1200,    # Increase width as needed
-        height=800,    # Increase height as needed
+        width=1600,    # Increase width as needed
+        height=1400,    # Increase height as needed
         margin=dict(l=60, r=60, t=80, b=50),
         xaxis_title="Category",
         yaxis_title="App",
