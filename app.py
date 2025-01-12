@@ -15,7 +15,6 @@ def create_heatmap(df):
                                    values='thumbsUpCount_222').fillna(0)
     
     # Create the heatmap using Plotly Express
-    # Using a color scale that emphasizes higher values in red
     fig = px.imshow(
         pivot_table,
         labels=dict(x="", y="", color=""),  # Hide axis and color titles
@@ -38,11 +37,11 @@ def create_heatmap(df):
     # Increase figure size (width & height) and adjust margins
     fig.update_layout(
         autosize=False,
-        width=2900,    # Increase width as needed
-        height=900,    # Increase height as needed
+        width=2900,   # Increase width as needed
+        height=900,   # Increase height as needed
         margin=dict(l=60, r=60, t=80, b=50),
-        xaxis_title=None,      # Remove the x-axis title
-        yaxis_title=None,      # Remove the y-axis title
+        xaxis_title=None,       # Remove the x-axis title
+        yaxis_title=None,       # Remove the y-axis title
         coloraxis_showscale=False
     )
 
@@ -56,13 +55,12 @@ def create_heatmap(df):
 
     return fig
 
-
 def main():
     st.set_page_config(
         page_title="Heatmap Dashboard",
         layout="wide",  # Use the full screen width
     )
-    # Change the main title to a smaller heading
+    # Smaller heading for main title
     st.markdown("### Heatmap of Summation of Thumbs Up Counts")
 
     # ----------------------------------------------------------------
@@ -84,16 +82,13 @@ def main():
     min_date = df_shortlisted['at'].min().date()
     max_date = df_shortlisted['at'].max().date()
 
-    # Default start date: 1st January of current year
-    # Default end date: today's date
+    # Default to current year's Jan 1 and today's date
     today = datetime.date.today()
-    current_year = today.year
-    start_of_year = datetime.date(current_year, 1, 1)
+    start_of_year = datetime.date(today.year, 1, 1)
 
-    # Ensure the defaults don't exceed the data's min/max date
-    # in case the data is older or doesn't extend to today's date.
-    default_start = max(min_date, start_of_year)   # use the later of min_date or start_of_year
-    default_end = min(max_date, today)             # use the earlier of max_date or today's date
+    # If your data is older or doesn’t extend to current date, adjust accordingly
+    default_start = max(start_of_year, min_date)  # later of (start_of_year, min_date)
+    default_end = min(today, max_date)            # earlier of (today, max_date)
 
     start_date = st.date_input(
         "Select start date",
@@ -108,23 +103,21 @@ def main():
         max_value=max_date
     )
 
-    # If the start date is greater than the end date, show error
+    # Show an error if invalid, but do not stop execution
     if start_date > end_date:
         st.error("Error: Start date must be before or same as end date.")
-        return
-
-    # Filter data by selected date range
-    mask = (df_shortlisted['at'].dt.date >= start_date) & (df_shortlisted['at'].dt.date <= end_date)
-    df_filtered = df_shortlisted.loc[mask].copy()
-    st.write(f"Number of records in filtered dataset: {len(df_filtered)}")
 
     # ----------------------------------------------------------------
     # 4. FILTERED DATA HEATMAP
     # ----------------------------------------------------------------
+    mask = (df_shortlisted['at'].dt.date >= start_date) & (df_shortlisted['at'].dt.date <= end_date)
+    df_filtered = df_shortlisted.loc[mask].copy()
+
+    st.write(f"Number of records in filtered dataset: {len(df_filtered)}")
+
     st.subheader(f"Filtered Data Heatmap ({start_date} to {end_date})")
     fig_filtered = create_heatmap(df_filtered)
     st.plotly_chart(fig_filtered, use_container_width=True)
-
 
 if __name__ == "__main__":
     main()
